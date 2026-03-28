@@ -77,7 +77,7 @@ export function TripLogs() {
   };
 
   return (
-    <div className="p-8 lg:p-12 space-y-10">
+    <div className="p-6 lg:p-12 space-y-10">
       <header className="flex flex-col gap-2">
         <span className="text-primary font-bold text-xs uppercase tracking-[0.3em]">Trip Intelligence</span>
         <h2 className="text-5xl font-black text-primary tracking-tighter uppercase">
@@ -123,7 +123,9 @@ export function TripLogs() {
         <table className="w-full text-left border-collapse">
           <thead className="bg-primary text-white">
             <tr>
-              {user?.role === "ADMIN" ? <th className="p-5 text-[10px] font-black uppercase tracking-widest">User</th> : null}
+              {user?.role === "ADMIN" ? (
+                <th className="p-5 text-[10px] font-black uppercase tracking-widest">User</th>
+              ) : null}
               <th className="p-5 text-[10px] font-black uppercase tracking-widest">Entry / Exit</th>
               <th className="p-5 text-[10px] font-black uppercase tracking-widest">Timestamp</th>
               <th className="p-5 text-[10px] font-black uppercase tracking-widest">Status</th>
@@ -155,11 +157,11 @@ export function TripLogs() {
                     ) : null}
                     <td className="p-5">
                       <div className="font-black text-primary uppercase">
-                        {trip.entryStation.code} → {trip.exitStation?.code || "IN TRANSIT"}
+                        {trip.entryStation.code} -&gt; {trip.exitStation?.code || "IN TRANSIT"}
                       </div>
                       <div className="text-[10px] text-on-surface-variant">
                         {trip.entryStation.name}
-                        {trip.exitStation ? ` → ${trip.exitStation.name}` : ""}
+                        {trip.exitStation ? ` -> ${trip.exitStation.name}` : ""}
                       </div>
                     </td>
                     <td className="p-5 text-on-surface-variant">{formatDateTime(trip.entryTime)}</td>
@@ -168,7 +170,9 @@ export function TripLogs() {
                         {trip.status.replace("_", " ")}
                       </span>
                     </td>
-                    <td className="p-5 text-right text-primary">{trip.fare == null ? "Pending" : formatCurrency(trip.fare)}</td>
+                    <td className="p-5 text-right text-primary">
+                      {trip.fare == null ? "Pending" : formatCurrency(trip.fare)}
+                    </td>
                   </tr>
                 );
               })
@@ -186,7 +190,7 @@ export function TripLogs() {
       {trips ? (
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-            Page {trips.page} of {trips.totalPages} · {trips.total} total trips
+            Page {trips.page} of {trips.totalPages} - {trips.total} total trips
           </p>
           <div className="flex gap-3">
             <button

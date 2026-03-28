@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { TrendingUp, Database, Activity, ShieldAlert } from "lucide-react";
+import { TrendingUp, Database, Activity } from "lucide-react";
 import { motion } from "motion/react";
 import { api } from "../lib/api";
 import { cn, formatCurrency, formatDateTime } from "../lib/utils";
@@ -44,7 +44,7 @@ export function Overview() {
   }, []);
 
   return (
-    <div className="p-12 space-y-12">
+    <div className="p-6 lg:p-12 space-y-10 lg:space-y-12">
       {error ? (
         <div className="bg-error-container text-on-error-container px-5 py-4 text-sm font-bold">{error}</div>
       ) : null}
@@ -101,20 +101,21 @@ export function Overview() {
             <Activity className="w-6 h-6 text-primary" />
           </div>
           <div className="mt-8 flex items-end gap-1 h-10">
-            {[stats?.activeUsers || 0, stats?.passengerCount || 0, tripLogs.length, liveTrips.length, stats?.totalUsers || 0]
-              .map((value, index) => (
+            {[stats?.activeUsers || 0, stats?.passengerCount || 0, tripLogs.length, liveTrips.length, stats?.totalUsers || 0].map(
+              (value, index) => (
                 <motion.div
                   key={index}
                   initial={{ height: 0 }}
                   animate={{ height: `${Math.max(10, Math.min(100, value * 10))}%` }}
                   className="w-4 bg-primary"
                 />
-              ))}
+              ),
+            )}
           </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12">
         <div className="lg:col-span-3 space-y-6">
           <div className="flex justify-between items-end border-b-2 border-primary pb-2">
             <h3 className="text-xl font-black uppercase tracking-widest text-primary">Live Trip Logs</h3>
@@ -127,7 +128,7 @@ export function Overview() {
             <table className="w-full text-left border-separate border-spacing-y-1">
               <thead>
                 <tr className="bg-surface-container-highest">
-                  {["Timestamp", "User Identifier", "Station Node", "Fare (USD)", "Protocol"].map((heading) => (
+                  {["Timestamp", "User Identifier", "Station Node", "Fare (INR)", "Protocol"].map((heading) => (
                     <th
                       key={heading}
                       className="p-4 font-sans text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
@@ -159,7 +160,7 @@ export function Overview() {
                         <div className="text-[10px] text-on-surface-variant">{log.user.fullName}</div>
                       </td>
                       <td className="p-4">
-                        {log.entryStation.code} → {log.exitStation?.code || "IN TRANSIT"}
+                        {log.entryStation.code} -&gt; {log.exitStation?.code || "IN TRANSIT"}
                       </td>
                       <td className="p-4 text-right font-black">
                         {log.fare == null ? "Pending" : formatCurrency(log.fare)}
@@ -227,7 +228,11 @@ export function Overview() {
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-primary to-transparent">
-              <span className="font-headline text-2xl font-black text-white leading-none">NETWORK<br/>TOPOLOGY</span>
+              <span className="font-headline text-2xl font-black text-white leading-none">
+                NETWORK
+                <br />
+                TOPOLOGY
+              </span>
             </div>
           </div>
         </div>

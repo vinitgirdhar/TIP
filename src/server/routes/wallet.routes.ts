@@ -56,7 +56,9 @@ walletRouter.post("/recharge", (req: AuthenticatedRequest, res) => {
   const amount = Number(req.body?.amount);
 
   if (!Number.isFinite(amount) || amount <= 0 || amount > MAX_WALLET_RECHARGE) {
-    res.status(400).json({ message: `Recharge amount must be greater than 0 and no more than ${MAX_WALLET_RECHARGE}.` });
+    res
+      .status(400)
+      .json({ message: `Recharge amount must be greater than 0 and no more than ₹${MAX_WALLET_RECHARGE}.` });
     return;
   }
 

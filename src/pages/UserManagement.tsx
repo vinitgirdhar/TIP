@@ -264,7 +264,7 @@ export function UserManagement() {
                 type="number"
                 step="0.01"
               />
-              <span className="bg-surface-container-high flex items-center px-4 font-black text-primary">USD</span>
+              <span className="bg-surface-container-high flex items-center px-4 font-black text-primary">INR</span>
             </div>
             <button
               disabled={!selectedUserId || isSubmitting}

@@ -88,7 +88,7 @@ export function TapSimulator() {
   }
 
   return (
-    <div className="p-8 lg:p-12 space-y-10">
+    <div className="p-6 lg:p-12 space-y-10">
       <header className="flex flex-col gap-2">
         <span className="text-primary font-bold text-xs uppercase tracking-[0.3em]">Transit Control</span>
         <h2 className="text-5xl font-black text-primary tracking-tighter uppercase">Tap In / Out</h2>
@@ -99,7 +99,7 @@ export function TapSimulator() {
       ) : null}
 
       <section className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8">
-        <div className="bg-surface-container-low p-10 space-y-8">
+        <div className="bg-surface-container-low p-6 lg:p-10 space-y-8">
           {!activeTrip && !receipt ? (
             <>
               <div className="flex justify-between items-end border-b-2 border-primary pb-4">
@@ -125,7 +125,7 @@ export function TapSimulator() {
                 >
                   {stations.map((station) => (
                     <option key={station.id} value={station.id}>
-                      {station.name} · Zone {station.zone}
+                      {station.name} - Zone {station.zone}
                     </option>
                   ))}
                 </select>
@@ -185,7 +185,7 @@ export function TapSimulator() {
                   <option value="">Choose exit station</option>
                   {stations.map((station) => (
                     <option key={station.id} value={station.id}>
-                      {station.name} · Zone {station.zone}
+                      {station.name} - Zone {station.zone}
                     </option>
                   ))}
                 </select>
@@ -249,7 +249,7 @@ export function TapSimulator() {
           ) : null}
         </div>
 
-        <aside className="bg-primary-container text-white p-10 flex flex-col justify-between overflow-hidden relative">
+        <aside className="bg-primary-container text-white p-6 lg:p-10 flex flex-col justify-between overflow-hidden relative">
           <motion.div
             animate={{ scale: [1, 1.08, 1], opacity: [0.15, 0.3, 0.15] }}
             transition={{ repeat: Infinity, duration: 2.4 }}
@@ -275,7 +275,7 @@ export function TapSimulator() {
             <div className="grid gap-3">
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5" />
-                <span className="text-sm font-bold">10 seeded stations connected across 5 fare zones.</span>
+                <span className="text-sm font-bold">12 Mumbai Metro Line 1 stations mapped across 5 fare zones.</span>
               </div>
               <div className="flex items-center gap-3">
                 <ArrowRightLeft className="w-5 h-5" />
@@ -288,4 +288,3 @@ export function TapSimulator() {
     </div>
   );
 }
-

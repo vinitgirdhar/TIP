@@ -1,152 +1,201 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Fingerprint, Globe2, ShieldCheck, Wallet } from "lucide-react";
-
-function KioskIllustration() {
-  return (
-    <div className="relative h-[300px] sm:h-[360px] overflow-hidden bg-gradient-to-b from-white via-[#eef1fb] to-[#d7daf0]">
-      <div className="absolute inset-x-0 bottom-5 h-10 bg-primary/10 blur-2xl" />
-
-      <div className="absolute left-1/2 bottom-5 -translate-x-1/2 w-[180px] h-[34px] bg-[#131633] rounded-full opacity-35 blur-[2px]" />
-
-      <div className="absolute left-[18%] bottom-[30px] w-[180px] h-[92px] bg-[#11132e] rounded-[18px] rotate-[4deg] shadow-[0_18px_30px_rgba(6,8,32,0.35)]" />
-      <div className="absolute left-[28%] bottom-[86px] w-[118px] h-[176px] bg-[#161937] rounded-[22px] -rotate-[7deg] shadow-[0_22px_34px_rgba(6,8,32,0.38)]" />
-      <div className="absolute left-[44%] bottom-[108px] w-[56px] h-[106px] bg-[#101226] rounded-[10px] border border-white/8 -rotate-[7deg]" />
-      <div className="absolute left-[47%] bottom-[136px] w-[36px] h-[52px] bg-gradient-to-br from-slate-300 via-slate-500 to-slate-700 rounded-[4px] -rotate-[7deg]" />
-      <div className="absolute left-[49%] bottom-[120px] w-[28px] h-[8px] bg-slate-500/25 rounded-full -rotate-[7deg]" />
-      <div className="absolute left-[46%] bottom-[112px] w-[46px] h-[12px] flex items-center gap-1 -rotate-[7deg]">
-        <div className="w-[10px] h-[10px] rounded-full border border-white/25" />
-        <div className="w-[14px] h-[3px] bg-white/20 rounded-full" />
-      </div>
-      <div className="absolute left-[37%] bottom-[46px] w-[92px] h-[10px] bg-white/6 rounded-full rotate-[4deg]" />
-
-      <div className="absolute left-3 bottom-3 bg-primary text-white px-3 py-2 flex items-center gap-2 shadow-[0_10px_20px_rgba(0,6,102,0.3)]">
-        <ShieldCheck className="w-3.5 h-3.5" />
-        <span className="text-[10px] font-black uppercase tracking-[0.18em]">Identity Verified</span>
-      </div>
-    </div>
-  );
-}
-
-const moduleCards = [
-  {
-    icon: Fingerprint,
-    tag: "Secure",
-    title: "Biometric Authentication",
-    description:
-      "Multi-point iris and palm-vein recognition protocols ensuring 99.9% entry accuracy without physical media.",
-  },
-  {
-    icon: Wallet,
-    tag: "Sovereign",
-    title: "Digital Wallet",
-    description:
-      "Centralized ledger for all transit credits, auto-renewals, and corporate expenditure tracking with real-time settlement.",
-  },
-  {
-    icon: Globe2,
-    tag: "Global",
-    title: "Universal Access",
-    description:
-      "One identity for every major transit hub across 140+ participating smart cities and private networks.",
-  },
-];
-
-const networkStats = [
-  { label: "Latency", value: "14ms" },
-  { label: "Uptime", value: "99.9%" },
-  { label: "Cities", value: "142" },
-  { label: "Users", value: "2.4M" },
-];
+import { Fingerprint, ShieldCheck, Zap, Globe, Lock, Terminal, ArrowRight } from "lucide-react";
 
 export function Landing() {
   const navigate = useNavigate();
 
   return (
     <div className="bg-surface">
-      <section className="px-5 pt-5 pb-8 lg:px-12 lg:pt-16 lg:pb-14">
-        <div className="mx-auto max-w-7xl grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
-          <div className="order-1 space-y-8">
-            <div className="space-y-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.38em] text-primary">Infrastructure V4.0</p>
-              <h1 className="text-[3.45rem] leading-[0.9] font-black text-primary uppercase tracking-[-0.06em] sm:text-[4.3rem] lg:text-[6.4rem]">
-                No Card,
-                <br />
-                No Phone,
-                <br />
-                No Friction.
-              </h1>
-              <p className="max-w-xl text-[1.02rem] leading-9 text-on-surface/90 sm:text-[1.1rem]">
-                Access the global transit network through sovereign biometric identity. Your body is the only
-                credential required.
+      <section className="relative min-h-[870px] flex items-center bg-primary overflow-hidden">
+        <div className="absolute inset-0 opacity-40">
+          <img
+            className="w-full h-full object-cover grayscale"
+            src="https://picsum.photos/seed/monolith-hero/1920/1080?grayscale"
+            alt="Infrastructure"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+        <div className="relative z-10 container mx-auto px-6 lg:px-12 flex flex-col items-start py-20">
+          <p className="text-white font-black tracking-[0.3em] uppercase mb-4 text-sm bg-primary-container px-3 py-1">
+            Protocol: Zero Friction
+          </p>
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-white leading-none tracking-tighter max-w-4xl uppercase">
+            No card,
+            <br />
+            no phone,
+            <br />
+            no friction.
+          </h1>
+          <div className="mt-12 flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => navigate("/register")}
+              className="bg-white text-primary px-10 py-5 font-black uppercase tracking-tighter text-xl active:scale-95 transition-transform"
+            >
+              Get Started
+            </button>
+            <button
+              onClick={() => navigate("/login")}
+              className="border-2 border-white text-white px-10 py-5 font-black uppercase tracking-tighter text-xl hover:bg-white/10 active:scale-95 transition-transform"
+            >
+              Infrastructure View
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-surface-container-highest border-y border-outline-variant/20 py-8 px-6 lg:px-12">
+        <div className="container mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          {[
+            { val: "0.3s", label: "Auth Speed" },
+            { val: "99.9%", label: "Uptime Core" },
+            { val: "AES-256", label: "Encryption" },
+            { val: "12M+", label: "Daily Trips" },
+          ].map((stat) => (
+            <div key={stat.label} className="flex flex-col">
+              <span className="text-primary font-black text-4xl leading-none">{stat.val}</span>
+              <span className="text-on-surface-variant font-bold text-xs uppercase tracking-widest mt-2">
+                {stat.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="py-24 px-6 lg:px-12">
+        <div className="container mx-auto">
+          <div className="mb-16">
+            <span className="text-primary font-bold uppercase tracking-widest text-sm block mb-2">
+              Core Ecosystem
+            </span>
+            <h2 className="text-4xl md:text-5xl font-black text-primary tracking-tighter uppercase max-w-2xl">
+              The Architecture of Modern Movement
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-8 bg-surface-container-low p-8 lg:p-12 group hover:bg-surface-container-high transition-colors">
+              <Fingerprint className="text-primary w-12 h-12 mb-6" />
+              <h3 className="text-3xl font-black text-primary uppercase mb-4">Biometric Authentication</h3>
+              <p className="text-on-surface-variant text-lg max-w-xl leading-relaxed">
+                Multi-modal facial and palm-vein recognition. Our sovereign AI engine identifies users in milliseconds,
+                even in high-congestion transit hubs.
+              </p>
+              <div className="mt-8 pt-8 border-t border-outline-variant/30 flex justify-between items-center">
+                <span className="text-xs font-bold tracking-widest uppercase">Encryption Active: RSA-4096</span>
+                <ArrowRight className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="md:col-span-4 bg-primary-container p-8 lg:p-12 text-white">
+              <Zap className="w-10 h-10 mb-6" />
+              <h3 className="text-2xl font-black uppercase mb-4">Contactless Entry</h3>
+              <p className="opacity-70 text-sm leading-relaxed">
+                No physical interaction required. Infrared proximity gates recognize authorized profiles from a distance
+                of 1.5 meters.
               </p>
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={() => navigate("/register")}
-                className="w-full sm:w-auto min-w-[220px] bg-primary text-white px-8 py-5 font-black uppercase tracking-[0.2em]"
-              >
-                Get Started
-              </button>
-              <button
-                onClick={() => navigate("/login")}
-                className="hidden lg:inline-flex border-2 border-primary text-primary px-8 py-5 font-black uppercase tracking-[0.2em]"
-              >
-                Infrastructure View
-              </button>
+            <div className="md:col-span-4 bg-surface-container-highest p-8 lg:p-12">
+              <ShieldCheck className="text-primary w-10 h-10 mb-6" />
+              <h3 className="text-2xl font-black text-primary uppercase mb-4">Smart Fare</h3>
+              <p className="text-on-surface-variant text-sm leading-relaxed">
+                Dynamic pricing algorithms calculate the most efficient route and fare automatically based on real-time
+                transit load.
+              </p>
+            </div>
+            <div className="md:col-span-4 bg-white p-8 lg:p-12 shadow-sm border border-outline-variant/10">
+              <Lock className="text-primary w-10 h-10 mb-6" />
+              <h3 className="text-2xl font-black text-primary uppercase mb-4">Digital Wallet</h3>
+              <p className="text-on-surface-variant text-sm leading-relaxed">
+                Integrated fiat settlement, auto reload, and live balance controls ensure every trip clears instantly.
+              </p>
+            </div>
+            <div className="md:col-span-4 bg-surface-container-low p-8 lg:p-12">
+              <Globe className="text-primary w-10 h-10 mb-6" />
+              <h3 className="text-2xl font-black text-primary uppercase mb-4">Live Monitoring</h3>
+              <p className="text-on-surface-variant text-sm leading-relaxed">
+                Real-time trip telemetry provided directly to your command console. Track every segment of your transit
+                path.
+              </p>
             </div>
           </div>
-
-          <div className="order-2 bg-white p-3 sm:p-5 shadow-[0_18px_40px_rgba(8,19,84,0.06)]">
-            <KioskIllustration />
-          </div>
         </div>
       </section>
 
-      <section id="modules" className="px-5 pb-10 lg:px-12 lg:pb-16">
-        <div className="mx-auto max-w-7xl">
-          <div className="pl-4 border-l-4 border-primary mb-8 lg:mb-10">
-            <h2 className="text-[2rem] leading-none font-black text-primary uppercase tracking-[-0.04em]">
-              System Modules
-            </h2>
-            <p className="mt-2 text-[11px] font-black uppercase tracking-[0.26em] text-on-surface-variant">
-              Core Infrastructure Features
-            </p>
+      <section className="py-24 bg-primary text-white overflow-hidden relative">
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-20">
+            <div>
+              <span className="text-white/60 font-bold uppercase tracking-widest text-sm block mb-2">
+                Operational Logic
+              </span>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase">System Workflow</h2>
+            </div>
+            <div className="text-right hidden md:block">
+              <p className="text-white/40 font-mono text-xs uppercase">Sequence ID: MT-9912-A</p>
+            </div>
           </div>
-
-          <div className="grid gap-5 lg:grid-cols-3">
-            {moduleCards.map((card) => (
-              <article key={card.title} className="bg-surface-container-low px-6 py-7 lg:px-8 lg:py-9">
-                <div className="flex items-start justify-between gap-4 mb-12">
-                  <card.icon className="w-6 h-6 text-primary" />
-                  <span className="bg-primary/6 text-primary text-[10px] font-black uppercase tracking-[0.18em] px-3 py-1.5">
-                    {card.tag}
-                  </span>
-                </div>
-                <h3 className="text-[2rem] leading-none font-black text-primary uppercase tracking-[-0.04em]">
-                  {card.title}
-                </h3>
-                <p className="mt-4 text-[0.98rem] leading-8 text-on-surface-variant">{card.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="status" className="px-5 pb-10 lg:px-12 lg:pb-20">
-        <div className="mx-auto max-w-7xl bg-primary text-white px-7 py-8 lg:px-10 lg:py-10">
-          <div className="mb-8 lg:mb-10">
-            <h2 className="text-[2rem] leading-none font-black uppercase tracking-[-0.04em]">Network Status</h2>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-8 gap-x-10">
-            {networkStats.map((stat) => (
-              <div key={stat.label}>
-                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/65">{stat.label}</p>
-                <p className="mt-2 text-[2.35rem] leading-none font-black tracking-[-0.05em]">{stat.value}</p>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-1">
+            {[
+              { id: "01", title: "Registration", desc: "Initial identity verification through government-issued ID scanning." },
+              { id: "02", title: "Enrollment", desc: "High-fidelity biometric signature capture and credential binding." },
+              { id: "03", title: "Entry", desc: "Automated gate release upon biometric detection at the station terminal." },
+              { id: "04", title: "Tracking", desc: "Real-time trip validation across the network and fare zones." },
+              { id: "05", title: "Exit", desc: "Final fare settlement and automated departure logging." },
+            ].map((step) => (
+              <div key={step.id} className="bg-primary-container p-8 border-l-4 border-white/20 hover:border-white transition-colors">
+                <span className="text-xs font-black mb-4 block text-white/40 tracking-widest">{step.id}</span>
+                <h4 className="text-xl font-black uppercase mb-3">{step.title}</h4>
+                <p className="text-white/60 text-xs leading-relaxed">{step.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 lg:px-12 bg-white">
+        <div className="container mx-auto flex flex-col md:flex-row items-center gap-16">
+          <div className="w-full md:w-1/2">
+            <img
+              className="w-full h-[500px] object-cover grayscale"
+              src="https://picsum.photos/seed/monolith-servers/800/1000?grayscale"
+              alt="Servers"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="w-full md:w-1/2">
+            <span className="text-primary font-bold uppercase tracking-widest text-sm block mb-2">The Tech Stack</span>
+            <h2 className="text-5xl md:text-6xl font-black text-primary tracking-tighter uppercase mb-8">
+              Infrastructure of Confidence
+            </h2>
+            <ul className="space-y-6">
+              {[
+                {
+                  icon: ShieldCheck,
+                  title: "Sovereign Cloud Engine",
+                  desc: "Decentralized processing ensures system survival even during regional outages.",
+                },
+                {
+                  icon: Lock,
+                  title: "Quantum-Safe Encryption",
+                  desc: "Ready for the next era of cryptographic challenges. Your data remains your own.",
+                },
+                {
+                  icon: Terminal,
+                  title: "Edge Node Validation",
+                  desc: "Processing happens at the gate, reducing latency to near-zero levels.",
+                },
+              ].map((item) => (
+                <li key={item.title} className="flex items-start gap-4">
+                  <item.icon className="text-primary w-6 h-6 mt-1" />
+                  <div>
+                    <span className="font-black uppercase text-sm block">{item.title}</span>
+                    <p className="text-on-surface-variant text-sm">{item.desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <button className="mt-12 bg-primary text-white px-12 py-5 font-black uppercase tracking-tighter text-lg active:scale-95 transition-transform">
+              Request Deployment Specs
+            </button>
           </div>
         </div>
       </section>

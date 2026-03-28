@@ -28,7 +28,7 @@ function AppContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const shelllessRoutes = new Set(["/", "/login", "/register", "/enroll"]);
   const showShell = !shelllessRoutes.has(location.pathname) && Boolean(user);
-  const showMobileChrome = Boolean(user) || location.pathname === "/" || location.pathname === "/login" || location.pathname === "/register";
+  const showMobileChrome = Boolean(user) || location.pathname === "/login" || location.pathname === "/register";
   const mobileNavItems = user ? getShellNavItems(user.role) : publicMobileNavItems;
 
   useEffect(() => {

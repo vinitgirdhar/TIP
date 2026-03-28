@@ -13,11 +13,10 @@ stationsRouter.get("/", (_req, res) => {
       `
         SELECT ${stationSelect("stations", "station")}
         FROM stations
-        ORDER BY stations.zone ASC, stations.name ASC
+        ORDER BY stations.id ASC
       `,
     )
     .all() as Record<string, unknown>[];
 
   res.json(rows.map((row) => mapStationRow(row, "station")));
 });
-

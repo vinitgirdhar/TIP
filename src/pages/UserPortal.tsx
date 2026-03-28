@@ -3,7 +3,7 @@ import { Fingerprint, Download, Bolt, TrainFront } from "lucide-react";
 import { api } from "../lib/api";
 import { formatCurrency, formatDateTime } from "../lib/utils";
 import { useAuth } from "../hooks/useAuth";
-import type { Fingerprint as FingerprintType, Transaction, Trip, Wallet } from "../shared/types";
+import type { Transaction, Trip, Wallet } from "../shared/types";
 
 interface WalletResponse {
   wallet: Wallet;
@@ -118,7 +118,7 @@ export function UserPortal() {
                 <span className="text-7xl font-black tracking-tighter">
                   {isLoading ? "..." : formatCurrency(wallet?.balance ?? 0)}
                 </span>
-                <span className="text-xl font-bold opacity-60">USD</span>
+                <span className="text-xl font-bold opacity-60">INR</span>
               </div>
             </div>
 
@@ -151,7 +151,7 @@ export function UserPortal() {
             <div className="space-y-6">
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-2">
-                  Amount (USD)
+                  Amount (INR)
                 </label>
                 <div className="relative">
                   <input
@@ -163,7 +163,9 @@ export function UserPortal() {
                     min="0"
                     step="0.01"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-primary/40">$</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-primary/40">
+                    {"\u20B9"}
+                  </span>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2">
@@ -174,6 +176,7 @@ export function UserPortal() {
                     className="bg-surface-container-high py-3 font-black hover:bg-primary hover:text-white transition-colors"
                     type="button"
                   >
+                    {"\u20B9"}
                     {quickAmount}
                   </button>
                 ))}
