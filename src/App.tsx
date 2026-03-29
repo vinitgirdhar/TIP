@@ -29,6 +29,8 @@ function AppContent() {
   const shelllessRoutes = new Set(["/", "/login", "/register", "/enroll"]);
   const showShell = !shelllessRoutes.has(location.pathname) && Boolean(user);
   const showMobileChrome = Boolean(user) || location.pathname === "/login" || location.pathname === "/register";
+  const showMobileDrawer = showMobileChrome && user?.role !== "USER";
+  const showMobileBottomNav = !user || user.role === "USER";
   const mobileNavItems = user ? getShellNavItems(user.role) : publicMobileNavItems;
 
   useEffect(() => {
@@ -36,17 +38,15 @@ function AppContent() {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex bg-surface">
+    <div className="min-h-screen flex bg-surface overflow-x-clip">
       {showShell && <Sidebar />}
 
       {showMobileChrome ? (
         <>
-          <MobileTopBar user={user} onMenuClick={() => setIsMobileMenuOpen(true)} />
-          <MobileDrawer
-            isOpen={isMobileMenuOpen}
-            items={mobileNavItems}
+          <MobileTopBar
             user={user}
-            onClose={() => setIsMobileMenuOpen(false)}
+            showMenuButton={showMobileDrawer}
+            onMenuClick={() => setIsMobileMenuOpen(true)}
             onLogout={
               user
                 ? () => {
@@ -56,15 +56,32 @@ function AppContent() {
                 : undefined
             }
           />
-          <MobileBottomNav items={mobileNavItems} pathname={location.pathname} />
+          {showMobileDrawer ? (
+            <MobileDrawer
+              isOpen={isMobileMenuOpen}
+              items={mobileNavItems}
+              user={user}
+              onClose={() => setIsMobileMenuOpen(false)}
+              onLogout={
+                user
+                  ? () => {
+                      logout();
+                      navigate("/login", { replace: true });
+                    }
+                  : undefined
+              }
+            />
+          ) : null}
+          {showMobileBottomNav ? <MobileBottomNav items={mobileNavItems} pathname={location.pathname} /> : null}
         </>
       ) : null}
 
       <main
         className={cn(
-          "w-full",
+          "w-full min-w-0",
           showShell && "lg:ml-64",
-          showMobileChrome && "pt-[76px] pb-[74px] lg:pt-0 lg:pb-0",
+          showMobileChrome && "pt-[76px] lg:pt-0",
+          showMobileBottomNav && "pb-[74px] lg:pb-0",
         )}
       >
         {showShell && <Header />}
