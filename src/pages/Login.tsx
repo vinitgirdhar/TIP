@@ -1,22 +1,21 @@
 import React, { useState } from "react";
-import { Fingerprint, LockKeyhole, Mail, ArrowRight } from "lucide-react";
+import { LockKeyhole, Mail, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
-function resolveDestination(role: "ADMIN" | "USER", requiresEnrollment: boolean): string {
+function resolveDestination(role: "ADMIN" | "USER"): string {
   if (role === "ADMIN") {
     return "/overview";
   }
 
-  return requiresEnrollment ? "/enroll" : "/portal";
+  return "/portal";
 }
 
 export function Login() {
   const navigate = useNavigate();
-  const { login, loginWithFingerprint } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fingerprintHash, setFingerprintHash] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,23 +26,9 @@ export function Login() {
 
     try {
       const session = await login({ email, password });
-      navigate(resolveDestination(session.user.role, session.requiresEnrollment), { replace: true });
+      navigate(resolveDestination(session.user.role), { replace: true });
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Login failed.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleFingerprintLogin = async () => {
-    setError(null);
-    setIsSubmitting(true);
-
-    try {
-      const session = await loginWithFingerprint({ fingerprintHash });
-      navigate(resolveDestination(session.user.role, session.requiresEnrollment), { replace: true });
-    } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "Biometric login failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -68,8 +53,8 @@ export function Login() {
             <p className="text-sm font-bold">admin@monolith.transit / admin123</p>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            Authenticate with your wallet credentials or a simulated fingerprint hash. Role routing and session
-            persistence are now enforced from the server.
+            Authenticate with your wallet credentials. Hardware fingerprint enrollment and gate verification now run
+            through the admin and ESP32 flow.
           </p>
         </div>
       </section>
@@ -127,31 +112,6 @@ export function Login() {
             </button>
           </form>
 
-          <div className="bg-primary-container text-white p-8 space-y-5">
-            <div className="flex items-center gap-4">
-              <Fingerprint className="w-8 h-8" />
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">Biometric Path</p>
-                <h3 className="text-2xl font-black uppercase tracking-tight">Fingerprint Verify</h3>
-              </div>
-            </div>
-            <input
-              value={fingerprintHash}
-              onChange={(event) => setFingerprintHash(event.target.value)}
-              className="w-full bg-white/10 px-4 py-4 outline-none text-sm font-mono"
-              placeholder="Paste enrolled fingerprint hash"
-              type="text"
-            />
-            <button
-              disabled={isSubmitting || !fingerprintHash.trim()}
-              onClick={handleFingerprintLogin}
-              className="w-full border-2 border-white px-6 py-4 font-black uppercase tracking-[0.2em] disabled:opacity-60"
-              type="button"
-            >
-              Biometric Login
-            </button>
-          </div>
-
           <p className="text-sm font-bold text-on-surface-variant">
             Need a wallet profile?{" "}
             <Link to="/register" className="text-primary underline">
@@ -163,4 +123,3 @@ export function Login() {
     </div>
   );
 }
-

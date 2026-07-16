@@ -6,12 +6,23 @@ export type TripStatus = "IN_TRANSIT" | "COMPLETED";
 
 export type TransactionType = "RECHARGE" | "FARE_DEDUCTION" | "ADMIN_ALLOCATION";
 
+export type HardwareVerificationStatus = "allowed" | "blocked" | "unauthorized";
+
+export type HardwareTapAction = "TAP_IN" | "TAP_OUT";
+
+export type HardwareGateMode = "ENTRY" | "EXIT" | "BOTH";
+
+export type HardwareAccessResult = "granted" | "denied";
+
+export type FingerprintEnrollmentStatus = "pending" | "claimed" | "completed" | "failed" | "expired";
+
 export interface User {
   id: number;
   fullName: string;
   govId: string;
   email: string;
   mobile: string;
+  fingerprintId: number | null;
   role: UserRole;
   status: UserStatus;
   createdAt: string;
@@ -61,6 +72,57 @@ export interface Fingerprint {
   enrolledAt: string;
 }
 
+export interface HardwareDevice {
+  id: number;
+  deviceId: string;
+  label: string;
+  gateMode: HardwareGateMode;
+  station: Station;
+  createdAt: string;
+}
+
+export interface HardwareFingerprintVerificationResponse {
+  status: HardwareVerificationStatus;
+  access: HardwareAccessResult;
+  action: HardwareTapAction | null;
+  message: string;
+  reason: string | null;
+  device: HardwareDevice | null;
+  user: User | null;
+  wallet: Wallet | null;
+  trip: Trip | null;
+  transaction: Transaction | null;
+  fare: number | null;
+}
+
+export interface FingerprintEnrollmentSession {
+  id: string;
+  userId: number;
+  fingerprintId: number;
+  deviceId: string;
+  status: FingerprintEnrollmentStatus;
+  message: string;
+  error: string | null;
+  createdAt: string;
+  updatedAt: string;
+  claimedAt: string | null;
+  completedAt: string | null;
+  expiresAt: string;
+  user: User | null;
+  device: HardwareDevice | null;
+}
+
+export interface HardwareFingerprintEnrollmentPollResponse {
+  pending: boolean;
+  pollIntervalMs: number;
+  enrollmentId: string | null;
+  userId: number | null;
+  userName: string | null;
+  fingerprintId: number | null;
+  deviceId: string | null;
+  message: string | null;
+}
+
 export interface AuthSession {
   token: string;
   user: User;
@@ -101,4 +163,3 @@ export interface PaginatedResponse<T> {
   total: number;
   totalPages: number;
 }
-

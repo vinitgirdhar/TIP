@@ -3,6 +3,7 @@ import Database from "better-sqlite3";
 import path from "path";
 import type {
   Fingerprint,
+  HardwareDevice,
   Station,
   Transaction,
   Trip,
@@ -40,6 +41,7 @@ export const USER_SELECT = `
   users.gov_id AS user_gov_id,
   users.email AS user_email,
   users.mobile AS user_mobile,
+  users.fingerprint_id AS user_fingerprint_id,
   users.role AS user_role,
   users.status AS user_status,
   users.created_at AS user_created_at
@@ -69,6 +71,15 @@ export const TRANSACTION_SELECT = `
   transactions.balance_after AS transaction_balance_after,
   transactions.description AS transaction_description,
   transactions.created_at AS transaction_created_at
+`;
+
+export const HARDWARE_DEVICE_SELECT = `
+  hardware_devices.id AS hardware_device_id,
+  hardware_devices.device_id AS hardware_device_device_id,
+  hardware_devices.label AS hardware_device_label,
+  hardware_devices.gate_mode AS hardware_device_gate_mode,
+  hardware_devices.created_at AS hardware_device_created_at,
+  ${stationSelect("device_station", "device_station")}
 `;
 
 export function stationSelect(tableAlias: string, prefix: string): string {
@@ -118,6 +129,7 @@ export function mapUserRow(row: Row): User {
     govId: String(value(row, "user_gov_id")),
     email: String(value(row, "user_email")),
     mobile: String(value(row, "user_mobile")),
+    fingerprintId: optionalValue<number>(row, "user_fingerprint_id"),
     role: String(value(row, "user_role")) as User["role"],
     status: String(value(row, "user_status")) as User["status"],
     createdAt: String(value(row, "user_created_at")),
@@ -149,6 +161,17 @@ export function mapStationRow(row: Row, prefix: string): Station {
     code: String(value(row, `${prefix}_code`)),
     name: String(value(row, `${prefix}_name`)),
     zone: Number(value(row, `${prefix}_zone`)),
+  };
+}
+
+export function mapHardwareDeviceRow(row: Row): HardwareDevice {
+  return {
+    id: Number(value(row, "hardware_device_id")),
+    deviceId: String(value(row, "hardware_device_device_id")),
+    label: String(value(row, "hardware_device_label")),
+    gateMode: String(value(row, "hardware_device_gate_mode")) as HardwareDevice["gateMode"],
+    station: mapStationRow(row, "device_station"),
+    createdAt: String(value(row, "hardware_device_created_at")),
   };
 }
 
@@ -212,6 +235,7 @@ function createSchema(db: SqliteDatabase): void {
       gov_id TEXT NOT NULL UNIQUE,
       email TEXT NOT NULL UNIQUE,
       mobile TEXT NOT NULL,
+      fingerprint_id INTEGER,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL CHECK (role IN ('ADMIN', 'USER')),
       status TEXT NOT NULL CHECK (status IN ('ACTIVE', 'PENDING', 'SUSPENDED')),
@@ -260,6 +284,62 @@ function createSchema(db: SqliteDatabase): void {
       created_at TEXT NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS hardware_devices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      device_id TEXT NOT NULL UNIQUE,
+      label TEXT NOT NULL,
+      gate_mode TEXT NOT NULL DEFAULT 'BOTH',
+      station_id INTEGER NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (station_id) REFERENCES stations(id)
+    );
+  `);
+}
+
+function tableHasColumn(db: SqliteDatabase, tableName: string, columnName: string): boolean {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
+  return columns.some((column) => column.name === columnName);
+}
+
+function runMigrations(db: SqliteDatabase): void {
+  if (!tableHasColumn(db, "users", "fingerprint_id")) {
+    db.exec("ALTER TABLE users ADD COLUMN fingerprint_id INTEGER");
+  }
+
+  if (!tableHasColumn(db, "hardware_devices", "gate_mode")) {
+    db.exec("ALTER TABLE hardware_devices ADD COLUMN gate_mode TEXT NOT NULL DEFAULT 'BOTH'");
+  }
+
+  db.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_fingerprint_id_unique
+    ON users(fingerprint_id)
+    WHERE fingerprint_id IS NOT NULL;
+  `);
+
+  db.exec(`
+    UPDATE users
+    SET fingerprint_id = (
+      SELECT fingerprints.id
+      FROM fingerprints
+      WHERE fingerprints.user_id = users.id
+    )
+    WHERE fingerprint_id IS NULL
+      AND EXISTS (
+        SELECT 1
+        FROM fingerprints
+        WHERE fingerprints.user_id = users.id
+      );
+  `);
+
+  db.exec(`
+    UPDATE hardware_devices
+    SET gate_mode = CASE
+      WHEN lower(device_id) LIKE '%entry%' THEN 'ENTRY'
+      WHEN lower(device_id) LIKE '%exit%' THEN 'EXIT'
+      ELSE 'BOTH'
+    END
+    WHERE gate_mode IS NULL OR gate_mode NOT IN ('ENTRY', 'EXIT', 'BOTH');
   `);
 }
 
@@ -339,6 +419,38 @@ function seedStations(db: SqliteDatabase): void {
   seed();
 }
 
+function seedHardwareDevices(db: SqliteDatabase): void {
+  const stations = db
+    .prepare(
+      `
+        SELECT id, name
+        FROM stations
+        ORDER BY id ASC
+      `,
+    )
+    .all() as Array<{ id: number; name: string }>;
+
+  const upsertDevice = db.prepare(
+    `
+      INSERT INTO hardware_devices (device_id, label, gate_mode, station_id, created_at)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(device_id) DO UPDATE SET
+        label = excluded.label,
+        gate_mode = excluded.gate_mode,
+        station_id = excluded.station_id
+    `,
+  );
+
+  const seededAt = nowIso();
+
+  stations.forEach((station, index) => {
+    const deviceSuffix = String(index + 1).padStart(2, "0");
+    upsertDevice.run(`gate_${deviceSuffix}`, `${station.name} Gate`, "BOTH", station.id, seededAt);
+    upsertDevice.run(`gate_entry_${deviceSuffix}`, `${station.name} Entry Gate`, "ENTRY", station.id, seededAt);
+    upsertDevice.run(`gate_exit_${deviceSuffix}`, `${station.name} Exit Gate`, "EXIT", station.id, seededAt);
+  });
+}
+
 function seedAdminUser(db: SqliteDatabase): void {
   const existingAdmin = db
     .prepare("SELECT id FROM users WHERE email = ?")
@@ -399,7 +511,9 @@ export function initDatabase(): SqliteDatabase {
   database.pragma("foreign_keys = ON");
 
   createSchema(database);
+  runMigrations(database);
   seedStations(database);
+  seedHardwareDevices(database);
   seedAdminUser(database);
 
   return database;

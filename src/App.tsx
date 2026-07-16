@@ -11,7 +11,6 @@ import { getShellNavItems, publicMobileNavItems } from "./components/layout/navI
 import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import { cn } from "./lib/utils";
-import { EnrollFingerprint } from "./pages/EnrollFingerprint";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
 import { Overview } from "./pages/Overview";
@@ -26,7 +25,7 @@ function AppContent() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const shelllessRoutes = new Set(["/", "/login", "/register", "/enroll"]);
+  const shelllessRoutes = new Set(["/", "/login", "/register"]);
   const showShell = !shelllessRoutes.has(location.pathname) && Boolean(user);
   const showMobileChrome = Boolean(user) || location.pathname === "/login" || location.pathname === "/register";
   const showMobileDrawer = showMobileChrome && user?.role !== "USER";
@@ -91,7 +90,6 @@ function AppContent() {
           <Route path="/register" element={<Register />} />
 
           <Route element={<ProtectedRoute />}>
-            <Route path="/enroll" element={<EnrollFingerprint />} />
             <Route path="/logs" element={<TripLogs />} />
           </Route>
 

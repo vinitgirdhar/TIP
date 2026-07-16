@@ -11,7 +11,7 @@ interface WalletResponse {
 }
 
 export function UserPortal() {
-  const { user, fingerprint, refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -71,7 +71,7 @@ export function UserPortal() {
     await rechargeWallet(Number(amount));
   };
 
-  const biometricLink = fingerprint ? "Active Biometric Link" : "Enrollment Pending";
+  const biometricLink = user?.fingerprintId ? "Active Hardware Link" : "Enrollment Pending";
 
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-16">
@@ -126,7 +126,7 @@ export function UserPortal() {
               <div className="space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Identity Lock</span>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 ${fingerprint ? "bg-green-400" : "bg-yellow-400"} rounded-full`} />
+                  <div className={`w-2 h-2 ${user?.fingerprintId ? "bg-green-400" : "bg-yellow-400"} rounded-full`} />
                   <span className="text-sm font-black uppercase tracking-widest break-words">{biometricLink}</span>
                 </div>
               </div>
