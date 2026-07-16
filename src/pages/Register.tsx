@@ -26,7 +26,7 @@ export function Register() {
 
     try {
       const session = await register(form);
-      navigate(session.requiresEnrollment ? "/enroll" : "/portal", { replace: true });
+      navigate(session.user.role === "ADMIN" ? "/overview" : "/portal", { replace: true });
     } catch (registerError) {
       setError(registerError instanceof Error ? registerError.message : "Registration failed.");
     } finally {
@@ -103,7 +103,8 @@ export function Register() {
           </div>
           <div className="space-y-4">
             <p className="text-sm text-white/70 leading-relaxed">
-              New users receive an empty wallet immediately, then complete biometric enrollment in the next step.
+              New users receive an empty wallet immediately. Hardware fingerprint enrollment is now completed later from
+              the admin device flow instead of a simulated hash step.
             </p>
             <p className="text-sm font-bold">
               Existing user?{" "}
@@ -117,4 +118,3 @@ export function Register() {
     </div>
   );
 }
-

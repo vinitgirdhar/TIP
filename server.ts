@@ -7,6 +7,7 @@ import { createServer as createViteServer } from "vite";
 import { initDatabase } from "./src/server/db";
 import { adminRouter } from "./src/server/routes/admin.routes";
 import { authRouter } from "./src/server/routes/auth.routes";
+import { hardwareRouter } from "./src/server/routes/hardware.routes";
 import { stationsRouter } from "./src/server/routes/stations.routes";
 import { tripsRouter } from "./src/server/routes/trips.routes";
 import { usersRouter } from "./src/server/routes/users.routes";
@@ -29,6 +30,7 @@ async function startServer() {
     res.json({ status: "ok", system: "MONOLITH_TRANSIT_CORE", version: "4.0.0" });
   });
 
+  app.use("/api", hardwareRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/stations", stationsRouter);
   app.use("/api/wallet", walletRouter);

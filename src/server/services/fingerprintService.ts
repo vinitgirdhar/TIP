@@ -10,7 +10,7 @@ export function generateFingerprintHash(seed?: string): string {
     .digest("hex");
 }
 
-export function enrollFingerprint(userId: number, seed?: string): Fingerprint {
+export function enrollFingerprint(userId: number, seed?: string, hardwareFingerprintId?: number): Fingerprint {
   const db = getDb();
   const fingerprintHash = generateFingerprintHash(seed || `${userId}-${randomUUID()}`);
   const enrolledAt = new Date().toISOString();
@@ -40,7 +40,28 @@ export function enrollFingerprint(userId: number, seed?: string): Fingerprint {
     throw new Error("Failed to enroll fingerprint.");
   }
 
-  return mapFingerprintRow(row);
+  const fingerprint = mapFingerprintRow(row);
+  const currentUserFingerprintRow = db
+    .prepare(
+      `
+        SELECT fingerprint_id
+        FROM users
+        WHERE id = ?
+      `,
+    )
+    .get(userId) as { fingerprint_id: number | null } | undefined;
+
+  const resolvedFingerprintId = hardwareFingerprintId ?? currentUserFingerprintRow?.fingerprint_id ?? fingerprint.id;
+
+  db.prepare(
+    `
+      UPDATE users
+      SET fingerprint_id = ?
+      WHERE id = ?
+    `,
+  ).run(resolvedFingerprintId, userId);
+
+  return fingerprint;
 }
 
 export function verifyFingerprintHash(
@@ -69,4 +90,3 @@ export function verifyFingerprintHash(
     fingerprint: mapFingerprintRow(row),
   };
 }
-

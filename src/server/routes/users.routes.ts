@@ -19,6 +19,10 @@ export const usersRouter = Router();
 
 usersRouter.use(authenticateToken, requireAdmin);
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 usersRouter.get("/", (_req, res) => {
   const db = getDb();
   const rows = db
@@ -27,7 +31,7 @@ usersRouter.get("/", (_req, res) => {
         SELECT
           ${USER_SELECT},
           wallets.balance AS wallet_balance,
-          CASE WHEN fingerprints.id IS NULL THEN 0 ELSE 1 END AS fingerprint_enrolled,
+          CASE WHEN users.fingerprint_id IS NULL THEN 0 ELSE 1 END AS fingerprint_enrolled,
           MAX(COALESCE(trips.exit_time, trips.entry_time, transactions.created_at, users.created_at)) AS last_activity_at
         FROM users
         INNER JOIN wallets ON wallets.user_id = users.id
@@ -91,6 +95,69 @@ usersRouter.get("/:id", (req, res) => {
     fingerprint: row.fingerprint_id == null ? null : mapFingerprintRow(row),
     activeTrip: activeTripRow ? mapTripRow(activeTripRow) : null,
   });
+});
+
+usersRouter.put("/:id", (req, res) => {
+  const db = getDb();
+  const userId = Number(req.params.id);
+  const fullName = String(req.body?.fullName || "").trim();
+  const govId = String(req.body?.govId || "").trim().toUpperCase();
+  const email = normalizeEmail(String(req.body?.email || ""));
+  const mobile = String(req.body?.mobile || "").trim();
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    res.status(400).json({ message: "A valid user ID is required." });
+    return;
+  }
+
+  if (!fullName || !govId || !email || !mobile) {
+    res.status(400).json({ message: "Full name, government ID, email, and mobile are required." });
+    return;
+  }
+
+  const existingUser = db
+    .prepare(
+      `
+        SELECT id
+        FROM users
+        WHERE role = 'USER'
+          AND id != ?
+          AND (email = ? OR gov_id = ?)
+      `,
+    )
+    .get(userId, email, govId) as { id: number } | undefined;
+
+  if (existingUser) {
+    res.status(409).json({ message: "Another user already uses that email or government ID." });
+    return;
+  }
+
+  const updateResult = db
+    .prepare(
+      `
+        UPDATE users
+        SET full_name = ?, gov_id = ?, email = ?, mobile = ?
+        WHERE id = ? AND role = 'USER'
+      `,
+    )
+    .run(fullName, govId, email, mobile, userId);
+
+  if (!updateResult.changes) {
+    res.status(404).json({ message: "User not found." });
+    return;
+  }
+
+  const updatedUser = db
+    .prepare(
+      `
+        SELECT ${USER_SELECT}
+        FROM users
+        WHERE users.id = ?
+      `,
+    )
+    .get(userId) as Record<string, unknown>;
+
+  res.json({ user: mapUserRow(updatedUser) });
 });
 
 usersRouter.put("/:id/status", (req, res) => {
@@ -228,4 +295,3 @@ usersRouter.post("/:id/allocate", (req: AuthenticatedRequest, res) => {
     res.status(400).json({ message: error instanceof Error ? error.message : "Allocation failed." });
   }
 });
-

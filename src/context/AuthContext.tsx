@@ -15,10 +15,6 @@ interface LoginPayload {
   password: string;
 }
 
-interface FingerprintLoginPayload {
-  fingerprintHash: string;
-}
-
 interface AuthMeResponse {
   user: User;
   wallet: Wallet;
@@ -34,7 +30,6 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (payload: LoginPayload) => Promise<AuthSession>;
-  loginWithFingerprint: (payload: FingerprintLoginPayload) => Promise<AuthSession>;
   register: (payload: RegisterPayload) => Promise<AuthSession>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -146,12 +141,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         applySessionFromAuthResponse(setState, response);
         return response;
       },
-      async loginWithFingerprint(payload) {
-        const response = await api.post<AuthSession>("/api/auth/fingerprint-verify", payload);
-        setStoredAuthToken(response.token);
-        applySessionFromAuthResponse(setState, response);
-        return response;
-      },
       async register(payload) {
         const response = await api.post<AuthSession>("/api/auth/register", payload);
         setStoredAuthToken(response.token);
@@ -170,4 +159,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export { AuthContext };
-
