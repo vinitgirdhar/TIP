@@ -6,12 +6,17 @@ import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { initDatabase } from "./src/server/db";
 import { adminRouter } from "./src/server/routes/admin.routes";
+import { analyticsRouter } from "./src/server/routes/analytics.routes";
 import { authRouter } from "./src/server/routes/auth.routes";
 import { hardwareRouter } from "./src/server/routes/hardware.routes";
+import { maintenanceRouter } from "./src/server/routes/maintenance.routes";
+import { notificationsRouter } from "./src/server/routes/notifications.routes";
 import { stationsRouter } from "./src/server/routes/stations.routes";
 import { tripsRouter } from "./src/server/routes/trips.routes";
 import { usersRouter } from "./src/server/routes/users.routes";
 import { walletRouter } from "./src/server/routes/wallet.routes";
+import { IOE_METADATA } from "./src/server/services/analyticsService";
+import { startScheduler } from "./src/server/services/schedulerService";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,7 +32,12 @@ async function startServer() {
 
   // API routes
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", system: "MONOLITH_TRANSIT_CORE", version: "4.0.0" });
+    res.json({
+      status: "ok",
+      system: IOE_METADATA.system,
+      version: IOE_METADATA.version,
+      pillars: ["PEOPLE", "PROCESS", "DATA", "THINGS"],
+    });
   });
 
   app.use("/api", hardwareRouter);
@@ -37,6 +47,13 @@ async function startServer() {
   app.use("/api/trips", tripsRouter);
   app.use("/api/users", usersRouter);
   app.use("/api/admin", adminRouter);
+  app.use("/api/notifications", notificationsRouter);
+  app.use("/api/analytics", analyticsRouter);
+  app.use("/api/maintenance", maintenanceRouter);
+
+  // Start the IoE scheduled task runner (low-balance sweeps, anomaly
+  // detection, and automatic maintenance ticket generation).
+  startScheduler();
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

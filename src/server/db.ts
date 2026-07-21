@@ -3,7 +3,10 @@ import Database from "better-sqlite3";
 import path from "path";
 import type {
   Fingerprint,
+  Guardian,
   HardwareDevice,
+  MaintenanceTicket,
+  Notification,
   Station,
   Transaction,
   Trip,
@@ -100,6 +103,47 @@ export const TRIP_SELECT = `
   trips.status AS trip_status,
   ${stationSelect("entry_station", "entry_station")},
   ${stationSelect("exit_station", "exit_station")}
+`;
+
+export const NOTIFICATION_SELECT = `
+  notifications.id AS notification_id,
+  notifications.user_id AS notification_user_id,
+  notifications.audience AS notification_audience,
+  notifications.category AS notification_category,
+  notifications.severity AS notification_severity,
+  notifications.title AS notification_title,
+  notifications.body AS notification_body,
+  notifications.metadata AS notification_metadata,
+  notifications.read AS notification_read,
+  notifications.created_at AS notification_created_at
+`;
+
+export const GUARDIAN_SELECT = `
+  guardians.id AS guardian_id,
+  guardians.user_id AS guardian_user_id,
+  guardians.name AS guardian_name,
+  guardians.mobile AS guardian_mobile,
+  guardians.email AS guardian_email,
+  guardians.relationship AS guardian_relationship,
+  guardians.notify_on_trip AS guardian_notify_on_trip,
+  guardians.notify_on_low_balance AS guardian_notify_on_low_balance,
+  guardians.low_balance_threshold AS guardian_low_balance_threshold,
+  guardians.created_at AS guardian_created_at
+`;
+
+export const MAINTENANCE_TICKET_SELECT = `
+  maintenance_tickets.id AS maintenance_ticket_id,
+  maintenance_tickets.device_id AS maintenance_ticket_device_id,
+  maintenance_tickets.category AS maintenance_ticket_category,
+  maintenance_tickets.severity AS maintenance_ticket_severity,
+  maintenance_tickets.status AS maintenance_ticket_status,
+  maintenance_tickets.title AS maintenance_ticket_title,
+  maintenance_tickets.description AS maintenance_ticket_description,
+  maintenance_tickets.source AS maintenance_ticket_source,
+  maintenance_tickets.created_at AS maintenance_ticket_created_at,
+  maintenance_tickets.updated_at AS maintenance_ticket_updated_at,
+  maintenance_tickets.resolved_at AS maintenance_ticket_resolved_at,
+  ${stationSelect("ticket_station", "ticket_station")}
 `;
 
 function value<T>(row: Row, key: string): T {
@@ -220,6 +264,69 @@ export function mapUserSummaryRow(row: Row): UserSummary {
   };
 }
 
+function parseMetadata(raw: unknown): Record<string, unknown> | null {
+  if (raw === null || raw === undefined || raw === "") {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(String(raw));
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function mapNotificationRow(row: Row): Notification {
+  return {
+    id: Number(value(row, "notification_id")),
+    userId: Number(value(row, "notification_user_id")),
+    audience: String(value(row, "notification_audience")) as Notification["audience"],
+    category: String(value(row, "notification_category")) as Notification["category"],
+    severity: String(value(row, "notification_severity")) as Notification["severity"],
+    title: String(value(row, "notification_title")),
+    body: String(value(row, "notification_body")),
+    metadata: parseMetadata(row.notification_metadata),
+    read: Boolean(Number(value(row, "notification_read"))),
+    createdAt: String(value(row, "notification_created_at")),
+  };
+}
+
+export function mapGuardianRow(row: Row): Guardian {
+  return {
+    id: Number(value(row, "guardian_id")),
+    userId: Number(value(row, "guardian_user_id")),
+    name: String(value(row, "guardian_name")),
+    mobile: String(value(row, "guardian_mobile")),
+    email: optionalValue<string>(row, "guardian_email"),
+    relationship: optionalValue<string>(row, "guardian_relationship"),
+    notifyOnTrip: Boolean(Number(value(row, "guardian_notify_on_trip"))),
+    notifyOnLowBalance: Boolean(Number(value(row, "guardian_notify_on_low_balance"))),
+    lowBalanceThreshold: Number(value(row, "guardian_low_balance_threshold")),
+    createdAt: String(value(row, "guardian_created_at")),
+  };
+}
+
+export function mapMaintenanceTicketRow(row: Row): MaintenanceTicket {
+  return {
+    id: Number(value(row, "maintenance_ticket_id")),
+    deviceId: optionalValue<string>(row, "maintenance_ticket_device_id"),
+    station:
+      optionalValue<number>(row, "ticket_station_id") === null
+        ? null
+        : mapStationRow(row, "ticket_station"),
+    category: String(value(row, "maintenance_ticket_category")) as MaintenanceTicket["category"],
+    severity: String(value(row, "maintenance_ticket_severity")) as MaintenanceTicket["severity"],
+    status: String(value(row, "maintenance_ticket_status")) as MaintenanceTicket["status"],
+    title: String(value(row, "maintenance_ticket_title")),
+    description: String(value(row, "maintenance_ticket_description")),
+    source: String(value(row, "maintenance_ticket_source")) as MaintenanceTicket["source"],
+    createdAt: String(value(row, "maintenance_ticket_created_at")),
+    updatedAt: String(value(row, "maintenance_ticket_updated_at")),
+    resolvedAt: optionalValue<string>(row, "maintenance_ticket_resolved_at"),
+  };
+}
+
 function createSchema(db: SqliteDatabase): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS stations (
@@ -294,6 +401,59 @@ function createSchema(db: SqliteDatabase): void {
       created_at TEXT NOT NULL,
       FOREIGN KEY (station_id) REFERENCES stations(id)
     );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      audience TEXT NOT NULL DEFAULT 'USER' CHECK (audience IN ('USER', 'ADMIN', 'GUARDIAN')),
+      category TEXT NOT NULL CHECK (category IN ('TRIP', 'WALLET', 'SECURITY', 'MAINTENANCE', 'SYSTEM', 'GUARDIAN')),
+      severity TEXT NOT NULL DEFAULT 'INFO' CHECK (severity IN ('INFO', 'WARNING', 'CRITICAL')),
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      metadata TEXT,
+      read INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS guardians (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      mobile TEXT NOT NULL,
+      email TEXT,
+      relationship TEXT,
+      notify_on_trip INTEGER NOT NULL DEFAULT 1,
+      notify_on_low_balance INTEGER NOT NULL DEFAULT 1,
+      low_balance_threshold REAL NOT NULL DEFAULT 50,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS maintenance_tickets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      device_id TEXT,
+      station_id INTEGER,
+      category TEXT NOT NULL DEFAULT 'GENERAL' CHECK (category IN ('SENSOR', 'GATE', 'NETWORK', 'GENERAL')),
+      severity TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+      status TEXT NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'ACKNOWLEDGED', 'RESOLVED')),
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT 'MANUAL' CHECK (source IN ('AUTO', 'MANUAL')),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      resolved_at TEXT,
+      FOREIGN KEY (station_id) REFERENCES stations(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_notifications_user_created
+      ON notifications(user_id, created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_guardians_user
+      ON guardians(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_maintenance_status
+      ON maintenance_tickets(status, created_at DESC);
   `);
 }
 
