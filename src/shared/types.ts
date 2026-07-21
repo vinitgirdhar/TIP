@@ -163,3 +163,159 @@ export interface PaginatedResponse<T> {
   total: number;
   totalPages: number;
 }
+
+/**
+ * Internet of Everything (IoE) additions.
+ *
+ * These types support the People / Process / Data / Things pillars layered on
+ * top of the existing biometric ticketing core:
+ *   - People  -> passenger + guardian notifications
+ *   - Process -> automated alerts, maintenance tickets, scheduled tasks
+ *   - Data    -> revenue, congestion, and anomaly analytics
+ *   - Things  -> hardware device health + maintenance
+ */
+
+export type NotificationAudience = "USER" | "ADMIN" | "GUARDIAN";
+
+export type NotificationCategory =
+  | "TRIP"
+  | "WALLET"
+  | "SECURITY"
+  | "MAINTENANCE"
+  | "SYSTEM"
+  | "GUARDIAN";
+
+export type NotificationSeverity = "INFO" | "WARNING" | "CRITICAL";
+
+export interface Notification {
+  id: number;
+  userId: number;
+  audience: NotificationAudience;
+  category: NotificationCategory;
+  severity: NotificationSeverity;
+  title: string;
+  body: string;
+  metadata: Record<string, unknown> | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface Guardian {
+  id: number;
+  userId: number;
+  name: string;
+  mobile: string;
+  email: string | null;
+  relationship: string | null;
+  notifyOnTrip: boolean;
+  notifyOnLowBalance: boolean;
+  lowBalanceThreshold: number;
+  createdAt: string;
+}
+
+export type MaintenanceCategory = "SENSOR" | "GATE" | "NETWORK" | "GENERAL";
+
+export type MaintenanceSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+export type MaintenanceStatus = "OPEN" | "ACKNOWLEDGED" | "RESOLVED";
+
+export type MaintenanceSource = "AUTO" | "MANUAL";
+
+export interface MaintenanceTicket {
+  id: number;
+  deviceId: string | null;
+  station: Station | null;
+  category: MaintenanceCategory;
+  severity: MaintenanceSeverity;
+  status: MaintenanceStatus;
+  title: string;
+  description: string;
+  source: MaintenanceSource;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt: string | null;
+}
+
+export type CongestionLevel = "LOW" | "MODERATE" | "HIGH" | "SEVERE";
+
+export interface RevenueByDay {
+  date: string;
+  revenue: number;
+  trips: number;
+}
+
+export interface RevenueByStation {
+  stationId: number;
+  stationCode: string;
+  stationName: string;
+  revenue: number;
+  taps: number;
+}
+
+export interface RevenueAnalytics {
+  totalRevenue: number;
+  totalTrips: number;
+  averageFare: number;
+  last7Days: RevenueByDay[];
+  topStations: RevenueByStation[];
+}
+
+export interface StationCongestion {
+  stationId: number;
+  stationCode: string;
+  stationName: string;
+  zone: number;
+  activeTrips: number;
+  recentTaps: number;
+  predictedNextHourTaps: number;
+  congestionLevel: CongestionLevel;
+}
+
+export interface CongestionForecast {
+  generatedAt: string;
+  windowMinutes: number;
+  networkLoad: CongestionLevel;
+  stations: StationCongestion[];
+}
+
+export type AnomalyType =
+  | "STALE_TRIP"
+  | "RAPID_TAPS"
+  | "NEGATIVE_BALANCE"
+  | "FARE_SPIKE"
+  | "DEVICE_SILENT";
+
+export interface AnomalyRecord {
+  type: AnomalyType;
+  severity: NotificationSeverity;
+  message: string;
+  reference: string | null;
+  detectedAt: string;
+}
+
+export interface AnomalyReport {
+  generatedAt: string;
+  anomalies: AnomalyRecord[];
+}
+
+export type IoePillar = "PEOPLE" | "PROCESS" | "DATA" | "THINGS";
+
+export interface IoePillarStatus {
+  pillar: IoePillar;
+  label: string;
+  healthy: boolean;
+  metric: number;
+  detail: string;
+}
+
+export interface IoeSystemOverview {
+  system: string;
+  version: string;
+  generatedAt: string;
+  pillars: IoePillarStatus[];
+  revenue: RevenueAnalytics;
+  congestion: CongestionForecast;
+  anomalies: AnomalyReport;
+  openMaintenanceTickets: number;
+  unreadAdminNotifications: number;
+}

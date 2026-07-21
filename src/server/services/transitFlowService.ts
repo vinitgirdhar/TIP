@@ -25,6 +25,7 @@ import {
   mapWalletRow,
 } from "../db";
 import { calculateFare } from "./fareCalculator";
+import { createNotification, dispatchGuardianAlert } from "./notificationService";
 
 export class TransitFlowError extends Error {
   statusCode: number;
@@ -57,6 +58,62 @@ export interface TripCompletionResult {
 
 function getFingerprintFromJoinedRow(row: Record<string, unknown>): Fingerprint | null {
   return row.fingerprint_id == null ? null : mapFingerprintRow(row);
+}
+
+/**
+ * Best-effort passenger + guardian notifications for a gate event. Any failure
+ * here is logged but never blocks the transit flow itself.
+ */
+function emitTripNotifications(input: {
+  userId: number;
+  kind: "TAP_IN" | "TAP_OUT";
+  stationName: string;
+  fare?: number;
+  balance?: number;
+}): void {
+  try {
+    if (input.kind === "TAP_IN") {
+      createNotification({
+        userId: input.userId,
+        category: "TRIP",
+        severity: "INFO",
+        title: "Checked in",
+        body: `Trip started at ${input.stationName}.`,
+        metadata: { station: input.stationName, action: "TAP_IN" },
+      });
+      dispatchGuardianAlert({
+        userId: input.userId,
+        trigger: "TRIP",
+        title: "Guardian alert: check-in",
+        body: `Passenger checked in at ${input.stationName}.`,
+        metadata: { station: input.stationName, action: "TAP_IN" },
+      });
+      return;
+    }
+
+    createNotification({
+      userId: input.userId,
+      category: "TRIP",
+      severity: "INFO",
+      title: "Checked out",
+      body: `Trip completed at ${input.stationName}. Fare ₹${input.fare ?? 0} deducted. Balance ₹${input.balance ?? 0}.`,
+      metadata: {
+        station: input.stationName,
+        action: "TAP_OUT",
+        fare: input.fare ?? null,
+        balance: input.balance ?? null,
+      },
+    });
+    dispatchGuardianAlert({
+      userId: input.userId,
+      trigger: "TRIP",
+      title: "Guardian alert: check-out",
+      body: `Passenger checked out at ${input.stationName}. Fare ₹${input.fare ?? 0}.`,
+      metadata: { station: input.stationName, action: "TAP_OUT", fare: input.fare ?? null },
+    });
+  } catch (error) {
+    console.error("[notifications] failed to emit trip notification:", error);
+  }
 }
 
 function buildVerificationSuccess(
@@ -230,7 +287,15 @@ export function startTripForUser(userId: number, stationId: number): Trip {
     throw new TransitFlowError("Failed to create trip.", 500);
   }
 
-  return mapTripRow(tripRow);
+  const trip = mapTripRow(tripRow);
+
+  emitTripNotifications({
+    userId,
+    kind: "TAP_IN",
+    stationName: trip.entryStation.name,
+  });
+
+  return trip;
 }
 
 export function completeTripForUser(userId: number, stationId: number): TripCompletionResult {
@@ -287,7 +352,7 @@ export function completeTripForUser(userId: number, stationId: number): TripComp
     throw new TransitFlowError("Insufficient wallet balance for fare deduction.", 402);
   }
 
-  return db.transaction(() => {
+  const settlement = db.transaction(() => {
     const completedAt = new Date().toISOString();
     const nextBalance = Number((wallet.balance - fare).toFixed(2));
 
@@ -367,6 +432,16 @@ export function completeTripForUser(userId: number, stationId: number): TripComp
       fare,
     };
   })();
+
+  emitTripNotifications({
+    userId,
+    kind: "TAP_OUT",
+    stationName: settlement.trip.exitStation?.name ?? exitStation.name,
+    fare: settlement.fare,
+    balance: settlement.wallet.balance,
+  });
+
+  return settlement;
 }
 
 export function listHardwareDevices(): HardwareDevice[] {
