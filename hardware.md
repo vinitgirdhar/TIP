@@ -125,11 +125,10 @@ Use `GET /api/fingerprint/devices` to discover seeded devices.
 
 After your ESP32 matches a fingerprint, it should send the matched `finger.fingerID` to the backend.
 
-Ready-to-flash example sketches now live in:
+Ready-to-flash unified ESP32 code now lives in:
 
-- [hardware/esp32/fingerprint_link/fingerprint_link.ino](/Users/richrebello/Desktop/rich%20college/TIP/hardware/esp32/fingerprint_link/fingerprint_link.ino)
-- [hardware/esp32/fingerprint_verify_gate/fingerprint_verify_gate.ino](/Users/richrebello/Desktop/rich%20college/TIP/hardware/esp32/fingerprint_verify_gate/fingerprint_verify_gate.ino)
-- [hardware/esp32/README.md](/Users/richrebello/Desktop/rich%20college/TIP/hardware/esp32/README.md)
+- [hardware/hardware.ino](hardware/hardware.ino)
+- [hardware/README.md](hardware/README.md)
 
 Example:
 
@@ -144,21 +143,23 @@ Important:
 - Do not use `localhost` from the ESP32. Use the computer's LAN IP.
 - The browser should not talk directly to the sensor.
 - The ESP32 or a local bridge service should call the backend.
-- The verify sketch now supports explicit Tap In, Tap Out, and Auto modes from Serial Monitor.
+- The unified sketch `hardware.ino` supports Tap In, Tap Out, Auto, and Website Enrollment modes via Serial Monitor.
 - For Tap In and Tap Out, the sketch uses `gate_entry_01` and `gate_exit_01`.
 - For desk testing, use `AUTO`, which maps to `gate_01`.
+- For website fingerprint enrollment, switch to `ENROLL` mode (`4` or `enroll`).
 
-### Gate Verify Commands
+### Serial Commands
 
-The updated `fingerprint_verify_gate.ino` supports:
+The unified `hardware.ino` sketch supports:
 
-- section selection
+- Mode switching:
   - `1` / `entry`
   - `2` / `exit`
   - `3` / `auto`
-- inspection commands
-  - `status`
-  - `modes`
+  - `4` / `enroll`
+- Inspection:
+  - `status` / `s`
+  - `modes` / `help`
 
 This keeps the hardware test flow aligned with the website, where Tap In and Tap Out are both visible instead of hiding the exit path behind a single button.
 
